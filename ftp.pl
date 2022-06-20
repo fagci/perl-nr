@@ -11,7 +11,14 @@ use Gen;
 
 sub scan {
     while ( my $ip = Gen::ip() ) {
-        my $c = Net::FTP->new( $ip, Timeout => 1 ) or next;
+        my $s = IO::Socket::INET->new(
+            PeerAddr => $ip,
+            PeerPort => 21,
+            Timeout  => 0.75,
+        ) or next;
+        close($s);
+
+        my $c = Net::FTP->new( $ip, Timeout => 2 ) or next;
 
         if ( $c->login ) {
             my @ff = $c->ls();
@@ -26,10 +33,6 @@ sub scan {
     }
 }
 
-my @threads;
+threads->new( \&scan ) for ( 0 .. 512 );
 
-for ( 0 .. 1024 ) {
-    push @threads, threads->new( \&scan );
-}
-
-$_->join() for (@threads);
+$_->join for ( threads->list );
