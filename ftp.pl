@@ -6,6 +6,7 @@ use warnings;
 use threads;
 use Net::FTP;
 use IO::Socket::INET;
+use Thread::Semaphore;
 
 use FindBin qw($RealBin);
 use lib "$RealBin/";
@@ -15,6 +16,8 @@ use Gen;
 use constant PORT         => 21;
 use constant CONN_TIMEOUT => 0.75;
 use constant FTP_TIMEOUT  => 3;
+
+our $s = Thread::Semaphore->new();
 
 sub has_ftp {
     my $s = IO::Socket::INET->new(
@@ -37,11 +40,13 @@ sub try_ftp {
 
     goto End unless ( $c->login );
 
-    my @files = $c->ls;
+    my @files = grep { !/^\.{1,2}$/ } $c->ls;
 
     if (@files) {
+        $s->down();
         print "$ip\n";
         print "$_\n" for (@files);
+        $s->up();
     }
 
   End:
