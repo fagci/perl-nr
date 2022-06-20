@@ -2,6 +2,7 @@
 
 use strict;
 use warnings;
+
 use threads;
 use Net::FTP;
 use IO::Socket::INET;
@@ -32,12 +33,9 @@ sub try_ftp {
         $ip,
         Port    => PORT,
         Timeout => FTP_TIMEOUT,
-    ) or return 0;
+    ) or return;
 
-    unless ( $c->login ) {
-        $c->quit;
-        return 0;
-    }
+    goto End unless ( $c->login );
 
     my @files = $c->ls;
 
@@ -46,8 +44,8 @@ sub try_ftp {
         print "$_\n" for (@files);
     }
 
+  End:
     $c->quit;
-    return 1;
 }
 
 sub scan {
