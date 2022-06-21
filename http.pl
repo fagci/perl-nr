@@ -18,6 +18,7 @@ $runner->run(sub {
     print $s "\r\n";
 
     while(<$s>) {
+        return if m/^HTTP\S+ [345]/;
         print "$ip: $1\n" if m/<title>([^<]+)/i;
     }
 });
