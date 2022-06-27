@@ -13,7 +13,11 @@ use Runner;
 use constant PORT         => 21;
 use constant FTP_TIMEOUT  => 3;
 
+my $logfile = 'out/ftp.log';
 my $runner = Runner->new(Port => PORT);
+
+open(LOG, '>>', $logfile) or die "e: $!\n";
+LOG->autoflush();
 
 $runner->run(sub {
     my ($ip) = @_;
@@ -29,6 +33,7 @@ $runner->run(sub {
 
     if (@files) {
         $runner->locked(sub {
+            print LOG "$ip: ", join(';', @files), "\n";
             print "$ip\n";
             print "$_\n" for (@files);
         })
@@ -37,3 +42,5 @@ $runner->run(sub {
   End:
     $c->quit;
 });
+
+close(LOG);
